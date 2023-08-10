@@ -35,7 +35,11 @@
       let body;
 
       const transportMessage = (event) => {
-        if (event.origin === "https://dev.alphaguilty.com") {
+        if (
+          event.origin === "https://dev.alphaguilty.com" &&
+          (event.data.type !== "localStorage" ||
+            event.data.method === "getItemResult")
+        ) {
           iframe.contentWindow.postMessage(
             event.data,
             "https://dev.alphaguilty.com"
@@ -48,6 +52,18 @@
           event.data.type === "localStorage" &&
           event.origin === "https://dev.alphaguilty.com"
         ) {
+          if (event.data.method === "getItem") {
+            const value = localStorage.getItem(event.data.data.key) || null;
+
+            iframe.contentWindow.postMessage(
+              {
+                type: "localStorage",
+                method: "getItemResult",
+                data: { key: event.data.data.key, value },
+              },
+              "https://dev.alphaguilty.com"
+            );
+          }
           if (event.data.method === "setItem") {
             localStorage.setItem(event.data.data.key, event.data.data.value);
           }
